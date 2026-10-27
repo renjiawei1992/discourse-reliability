@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>汉语篇章关系标注 · B1</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">汉语篇章关系标注 <span class="ver">B1</span></div>
+  <div class="who">
+    <label for="annotator">标注者</label>
+    <select id="annotator">
+      <option value="">请选择</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+    </select>
+  </div>
+  <div class="progress">
+    <span id="counter">0 / 0</span>
+    <div class="bar"><div id="barfill"></div></div>
+  </div>
+</header>
+
+<main id="app" class="hidden">
+
+  <section class="card">
+    <div class="meta">
+      <span id="phase" class="badge"></span>
+      <span id="tasktype" class="badge ghost"></span>
+      <span id="idx" class="muted"></span>
+    </div>
+
+    <div class="args">
+      <div class="arg">
+        <div class="arglabel">论元 1</div>
+        <div id="arg1" class="argtext"></div>
+      </div>
+      <div class="arg">
+        <div class="arglabel">论元 2</div>
+        <div id="arg2" class="argtext"></div>
+      </div>
+    </div>
+
+    <div id="connrow" class="connrow">
+      <span class="connlabel">连接词</span>
+      <span id="conn" class="conn"></span>
+    </div>
+
+    <details class="context">
+      <summary>查看完整上下文</summary>
+      <div id="text" class="fulltext"></div>
+    </details>
+  </section>
+
+  <section class="answers">
+    <p class="prompt">论元 2 与论元 1 之间是哪一类篇章关系？</p>
+    <div class="grid">
+      <button class="ans" data-sense="TEMPORAL">
+        <span class="num">1</span><span class="zh">时间</span><span class="en">TEMPORAL</span>
+      </button>
+      <button class="ans" data-sense="CONTINGENCY">
+        <span class="num">2</span><span class="zh">因果条件</span><span class="en">CONTINGENCY</span>
+      </button>
+      <button class="ans" data-sense="COMPARISON">
+        <span class="num">3</span><span class="zh">对比</span><span class="en">COMPARISON</span>
+      </button>
+      <button class="ans" data-sense="EXPANSION">
+        <span class="num">4</span><span class="zh">扩展</span><span class="en">EXPANSION</span>
+      </button>
+    </div>
+    <button id="unknown" class="unknown">无法判定（U）</button>
+  </section>
+
+  <section class="note-row">
+    <label for="note">备注（可选；选「无法判定」时必填）</label>
+    <textarea id="note" rows="2" placeholder="例如：两个论元都像是在讲结果，分不清因果与并列"></textarea>
+  </section>
+
+  <footer class="nav">
+    <button id="prev">← 上一题</button>
+    <span id="saved" class="muted">已自动保存</span>
+    <button id="next">下一题 →</button>
+  </footer>
+</main>
+
+<section id="welcome" class="welcome">
+  <h1>标注说明</h1>
+  <ol>
+    <li>先选标注者编号，再开始。你的进度会自动存在本机浏览器里，换电脑或清缓存会丢。</li>
+    <li>每题判断<b>论元 2 相对于论元 1</b>属于哪一类篇章关系，四选一。</li>
+    <li>不确定时选「无法判定」并写一句原因，<b>不要猜</b>——猜出来的数据会污染 κ。</li>
+    <li>前 60 条是试标，标完后我们会一起核对，再开始正式标注。</li>
+    <li>建议每次不超过 90 分钟；进度会自动保存，随时关掉再打开都能接着做。</li>
+  </ol>
+  <details class="quickref">
+    <summary>四类速查（详细版见 <a href="guideline.md" target="_blank">guideline.md</a>）</summary>
+    <dl>
+      <dt>TEMPORAL 时间</dt>
+      <dd>两个情境在时间上相关：同时，或一先一后。<b>不含</b>因果。</dd>
+      <dt>CONTINGENCY 因果条件</dt>
+      <dd>一个是另一个的原因、结果、条件、目的或推断依据。</dd>
+      <dt>COMPARISON 对比</dt>
+      <dd>两个情境形成对照，或后者对前者让步（虽然…但是…、即使…也…）。</dd>
+      <dt>EXPANSION 扩展</dt>
+      <dd>后者并列、递进、举例、解释、补充、总结、列举、择一，扩展前者。</dd>
+    </dl>
+  </details>
+  <button id="start" class="start" disabled>开始标注</button>
+</section>
+
+<div id="dock" class="export hidden">
+  <button id="export-csv" class="primary">导出 CSV</button>
+  <button id="export-json">导出 JSON（备份）</button>
+  <button id="submit">提交到服务器</button>
+  <span id="status" class="status"></span>
+</div>
+
+<script src="items.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

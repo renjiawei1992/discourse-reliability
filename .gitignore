@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+data/raw
+data/interim/
+data/processed/
+outputs/
+*.egg-info/
+.pytest_cache/
+
+# contains a hardcoded API key; keep out of version control
+src/discourse_reliability/models/9.py

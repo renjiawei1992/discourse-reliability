@@ -1,0 +1,21 @@
+{
+  "_comment": "EXAMPLE ONLY. 0-based column indices for CDTB .pipe rows. MUST be regenerated from the licensed file with `python run.py inspect-pipe --input <file>` and checked against the CDTB README before use. Do not trust this map.",
+  "relation": 0,
+  "conn_head": 1,
+  "conn1": 2,
+  "conn2": 3,
+  "conn_start_tok": 4,
+  "conn_end_tok": 5,
+  "arg1_start_sent": 6,
+  "arg1_start_tok": 7,
+  "arg1_end_sent": 8,
+  "arg1_end_tok": 9,
+  "arg2_start_sent": 10,
+  "arg2_start_tok": 11,
+  "arg2_end_sent": 12,
+  "arg2_end_tok": 13,
+  "conn_raw": 14,
+  "arg1_raw": 15,
+  "arg2_raw": 16,
+  "sense": 24
+}
