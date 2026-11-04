@@ -75,8 +75,10 @@ def defect(it) -> str:
     a1, a2 = norm(it.arg1), norm(it.arg2)
     if a1 and a2 and (a2 in a1 or a1 in a2):
         return "论元重叠：后件包含在前件之中"
-    if a2 and len(a2) < 8:
-        return "后件过短，可能切分不全"
+    # Chinese clauses are short: "３人受伤" (4) and "错了。" (3) are real
+    # arguments.  Only a bare noun fragment (<= 2 characters) is a defect.
+    if a2 and len(a2) <= 2:
+        return "后件过短"
     return ""
 
 
@@ -96,6 +98,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--annotator", required=True)
     ap.add_argument("--column", default="annotator_sense_l1")
     ap.add_argument("--preds", nargs="*", default=[])
+    ap.add_argument("--split", choices=["all", "pilot", "main"], default="all")
     ap.add_argument("--out-csv", required=True)
     ap.add_argument("--out-md", required=True)
     args = ap.parse_args(argv)
@@ -106,6 +109,8 @@ def main(argv: list[str] | None = None) -> int:
     for item_id, label in ans.items():
         it = items.get(item_id)
         if not it or not it.sense_l1 or label == it.sense_l1:
+            continue
+        if args.split != "all" and it.meta.get("b1_split") != args.split:
             continue
         rows.append({
             "item_id": item_id,

@@ -95,13 +95,19 @@ def agreement(
     raw_b = _read(path_b, column)
     ids = sorted(set(raw_a) & set(raw_b))
 
+    # An item dropped from the packet (e.g. an editorial exclusion) is still in
+    # the annotators' submissions.  Scoring it would keep a purged item in the
+    # kappa and in any example drawn from this report, so when an items file is
+    # given it defines the universe.
+    meta = _item_meta(items_path)
+    if meta:
+        ids = [i for i in ids if i in meta]
+
     # UNKNOWN is not a sense.  Counting two matching UNKNOWNs as agreement
     # inflates kappa, so undecided items are reported separately and kappa is
     # computed on the items both annotators actually decided.
     undecided = [i for i in ids if raw_a[i].upper() in UNDECIDED or raw_b[i].upper() in UNDECIDED]
     ids = [i for i in ids if i not in set(undecided)]
-
-    meta = _item_meta(items_path)
     levels = {"l1": [], "l2": [], "l3": []}
     ag, bg, groups = [], [], []
     for i in ids:

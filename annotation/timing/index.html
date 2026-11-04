@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>汉语篇章关系标注 · R152 计时</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="timing.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">汉语篇章关系标注 <span class="ver">R152 计时</span></div>
+  <div class="who">
+    <label for="annotator">标注者</label>
+    <input id="annotator" list="annlist" placeholder="编号或姓名" autocomplete="off">
+    <datalist id="annlist"></datalist>
+    <label for="session">会话</label>
+    <select id="session">
+      <option value="1">1（含试标）</option>
+      <option value="2">2</option>
+      <option value="3">3（只查标记项）</option>
+    </select>
+  </div>
+  <div class="progress">
+    <span id="counter">0 / 0</span>
+    <div class="bar"><div id="barfill"></div></div>
+  </div>
+</header>
+
+<main id="app" class="hidden">
+
+  <section class="card">
+    <div class="meta">
+      <span id="phase" class="badge"></span>
+      <span id="tasktype" class="badge ghost"></span>
+      <span id="idx" class="muted"></span>
+    </div>
+
+    <div class="args">
+      <div class="arg">
+        <div class="arglabel">论元 1</div>
+        <div id="arg1" class="argtext"></div>
+      </div>
+      <div class="arg">
+        <div class="arglabel">论元 2</div>
+        <div id="arg2" class="argtext"></div>
+      </div>
+    </div>
+
+    <div id="connrow" class="connrow">
+      <span class="connlabel">连接词</span>
+      <span id="conn" class="conn"></span>
+    </div>
+
+    <details class="context">
+      <summary>查看完整上下文</summary>
+      <div id="text" class="fulltext"></div>
+    </details>
+  </section>
+
+  <section id="suggest" class="suggest hidden">
+    <div class="suggest-head">模型建议</div>
+    <div class="suggest-label"><span id="suggest-zh"></span><span id="suggest-en"></span></div>
+    <div class="suggest-hint">按 <kbd>Enter</kbd> 直接采纳；不同意就点选下面的类别。</div>
+  </section>
+
+  <section class="answers">
+    <p class="prompt">论元 2 与论元 1 之间是哪一类篇章关系？</p>
+    <div class="grid">
+      <button class="ans" data-sense="TEMPORAL">
+        <span class="num">1</span><span class="zh">时间</span><span class="en">TEMPORAL</span>
+      </button>
+      <button class="ans" data-sense="CONTINGENCY">
+        <span class="num">2</span><span class="zh">因果条件</span><span class="en">CONTINGENCY</span>
+      </button>
+      <button class="ans" data-sense="COMPARISON">
+        <span class="num">3</span><span class="zh">对比</span><span class="en">COMPARISON</span>
+      </button>
+      <button class="ans" data-sense="EXPANSION">
+        <span class="num">4</span><span class="zh">扩展</span><span class="en">EXPANSION</span>
+      </button>
+    </div>
+    <button id="unknown" class="unknown">无法判定（U）</button>
+  </section>
+
+  <footer class="nav">
+    <button id="prev">← 上一题</button>
+    <span id="saved" class="muted">已自动保存</span>
+    <button id="next">下一题 →</button>
+  </footer>
+</main>
+
+<section id="welcome" class="welcome">
+  <h1>计时标注说明</h1>
+  <ol>
+    <li>先填标注者编号（用分给你的编号）、选会话，再开始。进度自动存在本机浏览器里。</li>
+    <li>本次每人 <b>50 条</b>，分两次会话完成，每次 50 题。<b>两次不要连着做完</b>，至少隔 2 小时或隔天。</li>
+    <li>每题判断<b>论元 2 相对于论元 1</b>属于哪一类篇章关系，四选一。有些题会给出模型建议，有些不会。</li>
+    <li><b>不论有没有模型建议，都请按你平时的判断标准做</b>。我们测的就是真实投入下的时间，赶时间会让整组数据作废。</li>
+    <li>会话 1 开头有 4 道热身题，不计入统计，正常标即可。</li>
+    <li>如果链接给的是 s=3，那一轮只显示模型「没把握」的题；模型有把握的题已自动采用其答案，不会出现。</li>
+  </ol>
+  <details class="quickref">
+    <summary>四类速查（详细版见 <a href="../guideline.md" target="_blank">guideline.md</a>）</summary>
+    <dl>
+      <dt>TEMPORAL 时间</dt>
+      <dd>两个情境在时间上相关：同时，或一先一后。<b>不含</b>因果。</dd>
+      <dt>CONTINGENCY 因果条件</dt>
+      <dd>一个是另一个的原因、结果、条件、目的或推断依据。</dd>
+      <dt>COMPARISON 对比</dt>
+      <dd>两个情境形成对照，或后者对前者让步（虽然…但是…、即使…也…）。</dd>
+      <dt>EXPANSION 扩展</dt>
+      <dd>后者并列、递进、举例、解释、补充、总结、列举、择一，扩展前者。</dd>
+    </dl>
+  </details>
+  <button id="start" class="start" disabled>开始这一会话</button>
+</section>
+
+<div id="dock" class="export hidden">
+  <button id="export-csv" class="primary">导出 CSV</button>
+  <button id="export-json">导出 JSON（备份）</button>
+  <button id="submit">提交到服务器</button>
+  <span id="status" class="status"></span>
+</div>
+
+<script src="items.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -40,6 +40,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--max-tokens", type=int, default=256)
+    ap.add_argument("--prompt-variant", default="v0", choices=["v0", "v1", "v2"],
+                    help="R171 wording variants; v0 is the template used everywhere else")
     ap.add_argument("--limit", type=int)
     args = ap.parse_args(argv)
 
@@ -74,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
             workers=args.workers,
             level=args.level,
             max_tokens=args.max_tokens,
+            variant=args.prompt_variant,
         )
         errs = sum(1 for p in out if p.error)
         print(f"fold {fold}: n={len(part)} errors={errs} shots={[s.sense_l1 for s in shots]}")

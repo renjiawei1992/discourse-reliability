@@ -12,6 +12,14 @@ Three mutations, each targeting a different possible shortcut:
 Every variant keeps the gold label: a correct mutation must not change the
 relation.  ``validate_csv`` exports them for the human check required before
 the main run.
+
+Note on ``no_connective``: it replaces the whole ``conn_char_start:conn_char_end``
+span.  For a paired frame ("当初…如今") that span runs from the first token to
+the last, so a clause of content disappears with the cue — the human check
+found those items unjudgeable (0.21 vs 0.99 for single tokens).  Use
+``no_connective_tokens`` when you need the mutation to remove only the cue;
+``no_connective`` is kept unchanged because the published R140 numbers were
+produced with it.
 """
 
 from __future__ import annotations
@@ -84,6 +92,79 @@ def no_connective(item: Item) -> Item:
         "original_text": item.text,
     }
     v.id = f"{item.id}::no_conn"
+    return v
+
+
+_ELLIPSIS = re.compile(r"\.{2,}|…+")
+
+
+def frame_parts(connective: str) -> list[str]:
+    """Split a paired connective ("当初…如今", "不是...是") into its parts."""
+    return [p for p in _ELLIPSIS.split(connective) if p]
+
+
+def _frame_token_spans(item: Item) -> list[tuple[int, int]] | None:
+    """Absolute char spans of the frame's own tokens, or None if unlocatable."""
+    segs = item.meta.get("conn_char_segments") or []
+    spans = [(int(a), int(b)) for a, b in segs
+             if 0 <= int(a) < int(b) <= len(item.text)]
+    if len(spans) >= 2:
+        return spans
+
+    # TED items carry no segments; fall back to the frame's endpoints inside
+    # the annotated span.
+    s, e = item.conn_char_start, item.conn_char_end
+    if not (s >= 0 and e > s):
+        return None
+    span = item.text[s:e]
+    parts = frame_parts(item.connective)
+    if len(parts) < 2 or not span.startswith(parts[0]):
+        return None
+    tail = None
+    for p in reversed(parts[1:]):
+        if len(span) > len(parts[0]) + len(p) and span.endswith(p):
+            tail = p
+            break
+    if tail is None:
+        return None
+    return [(s, s + len(parts[0])), (e - len(tail), e)]
+
+
+def no_connective_tokens(item: Item) -> Item | None:
+    """Remove only the frame's own tokens, keeping the text between them.
+
+    ``no_connective`` replaces the whole ``conn_char_start:conn_char_end`` span.
+    For a paired frame ("当初…如今") that span is a whole clause, so the mutation
+    deletes *content* and the resulting drop can no longer be read as cue
+    removal — the M4 check found humans can judge only 21% of those items,
+    against 99% of single-token deletions.
+
+    This variant replaces each frame token with ``____`` and leaves everything
+    between them intact.  Returns ``None`` when the tokens cannot be located,
+    so the caller can exclude the item instead of silently falling back to the
+    content-deleting variant.
+    """
+    spans = _frame_token_spans(item)
+    if not spans:
+        return None
+    v = copy.deepcopy(item)
+    out, prev = [], 0
+    for a, b in spans:
+        out.append(item.text[prev:a])
+        out.append("____")
+        prev = b
+    out.append(item.text[prev:])
+    v.text = "".join(out)
+    v.conn_char_start = v.conn_char_end = -1
+    v.connective = ""
+    v.meta = {
+        **item.meta,
+        "variant": "no_conn_tokens",
+        "base_id": item.id,
+        "target_connective": item.connective,
+        "original_text": item.text,
+    }
+    v.id = f"{item.id}::no_conn_tokens"
     return v
 
 

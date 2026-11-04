@@ -1,0 +1,55 @@
+/* R152 adds two things to the B1 stylesheet: a suggestion banner and a text
+ * input for the annotator id (the timing run is not limited to A-D). */
+
+.who input {
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+  width: 120px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.suggest {
+  max-width: 860px;
+  margin: 16px auto 0;
+  padding: 14px 20px;
+  background: #fffdf6;
+  border: 1px solid #f0dfb8;
+  border-left: 4px solid var(--warn);
+  border-radius: 12px;
+}
+
+.suggest-head {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: .08em;
+}
+
+.suggest-label { display: flex; align-items: baseline; gap: 10px; margin: 2px 0 2px; }
+.suggest-label #suggest-zh { font-size: 20px; font-weight: 700; }
+.suggest-label #suggest-en {
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+.suggest-hint { font-family: system-ui, sans-serif; font-size: 13px; color: var(--muted); }
+.suggest-hint kbd {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink);
+}
+
+/* The card sits above the banner in the DOM order used by B1; keep the same
+ * visual rhythm so a/b/c differ only in the banner, never in layout. */
+main { margin-top: 22px; }

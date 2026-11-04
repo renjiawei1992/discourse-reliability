@@ -50,9 +50,11 @@ def predict_one(
     temperature: float = 0.0,
     level: str = "l3",
     max_tokens: int = 256,
+    variant: str = "v0",
 ) -> Prediction:
     messages = build_messages(
-        item, regime=regime, shots=shots, extra_senses=allowed or (), level=level
+        item, regime=regime, shots=shots, extra_senses=allowed or (), level=level,
+        variant=variant,
     )
     gens = adapter.generate(
         messages, n=n_samples, temperature=temperature, max_tokens=max_tokens
@@ -89,7 +91,9 @@ def predict_one(
         confidence=top_n / len(senses),
         latency_ms=statistics.mean(lat) if lat else None,
         meta={"n_samples": len(senses), "temperature": temperature,
-              "max_tokens": max_tokens, "prompt_version": PROMPT_VERSION,
+              "max_tokens": max_tokens,
+              "prompt_version": PROMPT_VERSION if variant == "v0" else f"{PROMPT_VERSION}-{variant}",
+              "prompt_variant": variant,
               **({"served_model": served} if served else {})},
     )
 
@@ -105,6 +109,7 @@ def run(
     workers: int = 8,
     level: str = "l3",
     max_tokens: int = 256,
+    variant: str = "v0",
 ) -> list[Prediction]:
     items = list(items)
     if allowed is None:
@@ -123,6 +128,7 @@ def run(
                 temperature,
                 level,
                 max_tokens,
+                variant,
             ): it.id
             for it in items
         }

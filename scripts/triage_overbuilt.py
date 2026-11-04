@@ -197,6 +197,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pool", nargs="+", required=True, help="all model files for consensus")
     ap.add_argument("--level", default="l1", choices=["l1", "l2", "l3"])
     ap.add_argument("--folds", type=int, default=5)
+    ap.add_argument("--budgets", nargs="+", type=float, default=[0.1, 0.2, 0.3],
+                    help="review budgets to score; 0.5 answers the pre-registered criterion")
     ap.add_argument("--out", required=True)
     args = ap.parse_args(argv)
 
@@ -299,7 +301,8 @@ def main(argv: list[str] | None = None) -> int:
     scores["oracle"] = {i: (1.0 if pred[i] != gold[i] else 0.0) for i in ids}
 
     aucs = {k: round(auc(y, [scores[k][i] for i in ids]), 4) for k in scores}
-    curves = {k: quality_at(gold, pred, scores[k], ids) for k in scores}
+    curves = {k: quality_at(gold, pred, scores[k], ids, budgets=tuple(args.budgets))
+              for k in scores}
 
     # Paired bootstrap over documents for the two decisions that matter.
     def delta_auc(a: str, b: str, n_boot: int = 1000, seed: int = 13):

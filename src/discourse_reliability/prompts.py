@@ -44,11 +44,35 @@ DEFINITIONS_L1 = """汉语篇章关系四大类（PDTB 3.0 顶层）：
 
 SYSTEM = "你是汉语篇章语言学专家，熟悉 PDTB 篇章关系标注体系。只输出 JSON，不要输出其他内容。"
 
+#: Rewordings of the L1 instruction used only by R171.  They change *when* and
+#: *how* the task is stated, not what counts as correct: definitions and the
+#: output contract stay identical, so any movement in kappa is attributable to
+#: wording rather than to a different task.
+PROMPT_VARIANTS = {
+    "v0": {},
+    "v1": {
+        "preface": (
+            "任务：下面给出汉语篇章中的两个论元（Arg1 与 Arg2）以及它们之间的连接词。"
+            "请判断 Arg1 与 Arg2 之间的篇章关系属于四大类中的哪一类。只判大类。"
+        ),
+    },
+    "v2": {
+        "rules": (
+            "判断顺序：① 先看同时管辖 Arg1 与 Arg2 的连接词，它通常直接决定大类；"
+            "② 没有跨论元连接词时，看 Arg2 对 Arg1 做了什么——推进时间线（TEMPORAL）、"
+            "给出原因或结果（CONTINGENCY）、形成对照或让步（COMPARISON）、补充说明或举例（EXPANSION）；"
+            "③ 只管辖论元内部成分的连接词不能决定 Arg1↔Arg2 的关系。"
+        ),
+    },
+}
+
 
 def _render_explicit(item: Item, level: str = "l3") -> str:
     task = "篇章关系大类" if level == "l1" else "篇章关系义项"
     variant = item.meta.get("variant")
-    if variant == "no_connective":
+    # "no_conn_tokens" is the paired-frame fix: only the frame's own tokens are
+    # replaced, so it is the same instruction and the same rendering.
+    if variant in {"no_connective", "no_conn_tokens"}:
         return (
             f"句子（原连接词已被删除，用 ____ 标出）：\n{item.text}\n\n"
             f"请判断此处原本表达的{task}。"
@@ -137,14 +161,26 @@ def build_messages(
     shots: Iterable[Item] = (),
     extra_senses: Sequence[str] = (),
     level: str = "l3",
+    variant: str = "v0",
 ) -> list[dict[str, str]]:
     """Render one prompt.  ``level="l1"`` switches to the 4-class task.
 
     Asking for L1 while the template still demands L2/L3 is not the same task:
     probability mass goes to distinctions that are then thrown away, and the
     output contract is harder to parse.  L1 experiments must use ``level="l1"``.
+
+    ``variant`` selects one of :data:`PROMPT_VARIANTS` (R171 only).  It rewords
+    the instruction but keeps the definitions and the JSON contract, so Kappa
+    differences are attributable to wording.
     """
+    if variant not in PROMPT_VARIANTS:
+        raise ValueError(f"unknown prompt variant {variant!r}")
+    opts = PROMPT_VARIANTS[variant]
     body: list[str] = [DEFINITIONS_L1 if level == "l1" else DEFINITIONS]
+    if level == "l1" and opts.get("preface"):
+        body.insert(0, opts["preface"])
+    if level == "l1" and opts.get("rules"):
+        body.append(opts["rules"])
     if extra_senses:
         body.append("本语料中出现的义项：" + "、".join(sorted(extra_senses)))
     if regime in {"few_shot", "cot"}:

@@ -1,11 +1,17 @@
 __pycache__/
 *.pyc
-data/raw
-data/interim/
-data/processed/
-outputs/
 *.egg-info/
 .pytest_cache/
 
+# No corpus content and no derived data are redistributed from this repository.
+#   data/     raw corpora (licensed), annotator submissions (ethics), and the
+#             processed files, which embed the corpus sentences themselves
+#   outputs/  predictions, typologies and reports derived from them
+# Both stay local. Ask the authors if you need them for replication.
+data/
+outputs/
+
 # contains a hardcoded API key; keep out of version control
 src/discourse_reliability/models/9.py
+
+*.bak-*

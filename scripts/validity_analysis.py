@@ -97,8 +97,21 @@ def analyse(items, a: dict, b: dict, preds_by_model: dict[str, dict], level: str
 
         human_dis = [1 if a[i] != b[i] else 0 for i in ids]
         model_wrong = [1 if pred[i] != getattr(items[i], f"sense_{level}") else 0 for i in ids]
+        gold = {i: getattr(items[i], f"sense_{level}") for i in ids}
         both_agree_human = [i for i in ids if a[i] == b[i]]
-        strict_wrong = [i for i in both_agree_human if pred[i] != a[i]]
+
+        # Three different quantities were previously conflated under one key.
+        # ``pred != a`` on agreed items is not "the model is at fault": when the
+        # annotators agree with each other but disagree with the corpus, the
+        # model may be the one that is right.  Keep them separate.
+        err_on_agree = [i for i in both_agree_human if pred[i] != gold[i]]
+        disagrees_agree = [i for i in both_agree_human if pred[i] != a[i]]
+        # The strict case: the annotators agree with each other, they agree with
+        # the corpus, and the model is still wrong.
+        strict_wrong = [i for i in both_agree_human
+                        if a[i] == gold[i] and pred[i] != gold[i]]
+        # Where the annotators agree with each other but not with the corpus.
+        humans_off_gold = [i for i in both_agree_human if a[i] != gold[i]]
 
         def rate(flag_items):
             if not flag_items:
@@ -152,10 +165,23 @@ def analyse(items, a: dict, b: dict, preds_by_model: dict[str, dict], level: str
             "js_divergence_confusions": round(js_divergence(pairs_h, pairs_m), 4),
             "human_confusion_top": {f"{x}->{y}": n for (x, y), n in pairs_h.most_common(5)},
             "model_confusion_top": {f"{x}->{y}": n for (x, y), n in pairs_m.most_common(5)},
+            "model_error_on_agreed": {
+                "n": len(err_on_agree),
+                "share_of_model_errors": round(len(err_on_agree) / max(1, sum(model_wrong)), 4),
+                "n_agreed": len(both_agree_human),
+            },
+            "disagrees_with_agreed_humans": {
+                "n": len(disagrees_agree),
+                "share_of_model_errors": round(len(disagrees_agree) / max(1, sum(model_wrong)), 4),
+            },
             "strictly_model_fault": {
                 "n": len(strict_wrong),
                 "share_of_model_errors": round(len(strict_wrong) / max(1, sum(model_wrong)), 4),
                 "items": strict_wrong[:20],
+            },
+            "humans_agree_off_gold": {
+                "n": len(humans_off_gold),
+                "model_sides_with_gold": sum(1 for i in humans_off_gold if pred[i] == gold[i]),
             },
             "by_stratum": by_stratum,
         }
@@ -211,9 +237,13 @@ def main(argv: list[str] | None = None) -> int:
         "provenance": provenance,
         "items_file": args.items,
         "n_items": len(items),
-        "n_annotated": len(set(a) & set(b)),
+        # Restrict to items still in the packet: a submission can carry ids that
+        # were later excluded from the corpus, and counting them here would
+        # report more annotated items than the packet contains.
+        "n_annotated": len(set(a) & set(b) & set(by_id)),
         "annotator_agreement": round(
-            sum(1 for i in set(a) & set(b) if a[i] == b[i]) / max(1, len(set(a) & set(b))), 4),
+            sum(1 for i in set(a) & set(b) & set(by_id) if a[i] == b[i])
+            / max(1, len(set(a) & set(b) & set(by_id))), 4),
         **analyse(by_id, a, b, preds_by_model, args.level),
     }
     out = ROOT / args.out
