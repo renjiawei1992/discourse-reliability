@@ -196,7 +196,6 @@ python run.py merge-adjudication --items items.jsonl \
 | B4 triage protocol | confidence, cross-model consensus, hybrid scorer, cost–quality curve | `triage.py` |
 | B5 bias and validity | disagreement items, label distribution, error typology | `metrics/evaluate.py` + human codebooks |
 
-![alt text](image.png)
 
 Design choices:
 
